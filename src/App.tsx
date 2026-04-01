@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { HashRouter, Routes, Route, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Upload, CheckCircle2, Loader2, X, Plus, Play, BarChart2, 
   Users, Settings, LogOut, Video, LayoutDashboard, Lock, 
   MessageCircle, Share2, AlertTriangle, Info, Check, Image as ImageIcon
 } from 'lucide-react';
+
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 
 // TikTok Logo SVG
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -22,20 +26,22 @@ const FAKE_VIDEOS = [
 export default function App() {
   const [authState, setAuthState] = useState<'logged_out' | 'authorizing' | 'logged_in'>('logged_out');
 
-  if (authState === 'logged_out') {
-    return <LoginScreen onConnect={() => setAuthState('authorizing')} />;
-  }
-
-  if (authState === 'authorizing') {
-    return <TikTokAuthModal onAuthorize={() => setAuthState('logged_in')} onCancel={() => setAuthState('logged_out')} />;
-  }
-
-  return <Dashboard onLogout={() => setAuthState('logged_out')} />;
+  return (
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={
+          authState === 'logged_out' ? <LoginScreen onConnect={() => setAuthState('authorizing')} /> :
+          authState === 'authorizing' ? <TikTokAuthModal onAuthorize={() => setAuthState('logged_in')} onCancel={() => setAuthState('logged_out')} /> :
+          <Dashboard onLogout={() => setAuthState('logged_out')} />
+        } />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+      </Routes>
+    </HashRouter>
+  );
 }
 
 function LoginScreen({ onConnect }: { onConnect: () => void }) {
-  const [legalView, setLegalView] = useState<'none' | 'terms' | 'policy'>('none');
-
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -92,56 +98,11 @@ function LoginScreen({ onConnect }: { onConnect: () => void }) {
         
         <p className="mt-6 text-center text-xs text-slate-400">
           By connecting your account, you agree to our{' '}
-          <button onClick={() => setLegalView('terms')} className="text-indigo-600 hover:underline font-medium">Terms of Service</button>
+          <Link to="/terms" className="text-indigo-600 hover:underline font-medium">Terms of Service</Link>
           {' '}and{' '}
-          <button onClick={() => setLegalView('policy')} className="text-indigo-600 hover:underline font-medium">Privacy Policy</button>.
+          <Link to="/privacy" className="text-indigo-600 hover:underline font-medium">Privacy Policy</Link>.
         </p>
       </div>
-
-      <AnimatePresence>
-        {legalView === 'terms' && (
-          <LegalModal 
-            title="Terms of Service" 
-            onClose={() => setLegalView('none')}
-            content={
-              <>
-                <h3 className="font-bold text-slate-900 mb-2">1. Acceptance of Terms</h3>
-                <p className="mb-4">By accessing SocialSync Pro, you agree to be bound by these Terms of Service, as well as the official <strong>TikTok Developer Terms of Service</strong>. If you do not agree, you may not use our API integration.</p>
-                
-                <h3 className="font-bold text-slate-900 mb-2">2. API Usage & Sandbox Environment</h3>
-                <p className="mb-4">This application currently operates in a <strong>Developer Sandbox</strong>. It utilizes the <strong>TikTok Login Kit</strong> for authentication, the <strong>Display API</strong> to fetch public video metadata, and the <strong>Content Posting API</strong> (Direct Post) for video uploads. Access is restricted to authorized test accounts (@warda_53).</p>
-                
-                <h3 className="font-bold text-slate-900 mb-2">3. Content Restrictions</h3>
-                <p className="mb-4">When using the Content Posting API, you agree that all uploaded media complies with TikTok's Community Guidelines. You must not upload content that infringes on intellectual property rights or violates the TikTok API Developer Agreement.</p>
-                
-                <h3 className="font-bold text-slate-900 mb-2">4. Rate Limiting & Quotas</h3>
-                <p className="mb-4">As a Sandbox application, API requests are subject to strict rate limits (e.g., requests per second/minute) enforced by the TikTok Open API platform. Excessive requests may result in temporary suspension of your Sandbox access token.</p>
-              </>
-            }
-          />
-        )}
-        {legalView === 'policy' && (
-          <LegalModal 
-            title="Privacy Policy" 
-            onClose={() => setLegalView('none')}
-            content={
-              <>
-                <h3 className="font-bold text-slate-900 mb-2">1. Data Collection via Login Kit</h3>
-                <p className="mb-4">Upon authorization through the <strong>TikTok Login Kit</strong>, we request the <code>user.info.basic</code> scope. This grants us temporary access to your public profile data, including your Display Name, Avatar URL, and Profile Link.</p>
-                
-                <h3 className="font-bold text-slate-900 mb-2">2. Video Data & Display API</h3>
-                <p className="mb-4">We utilize the <strong>TikTok Display API</strong> (<code>video.list</code> scope) to retrieve metadata for your public videos (views, likes, comments). This data is used solely to populate your SocialSync Pro dashboard.</p>
-                
-                <h3 className="font-bold text-slate-900 mb-2">3. Data Storage & Security</h3>
-                <p className="mb-4">Because this is a client-side Sandbox demonstration, <strong>we do not store your TikTok Access Tokens, Refresh Tokens, or video data on external servers</strong>. All data fetched from <code>open.tiktokapis.com</code> is processed locally in your browser session and is cleared upon logout.</p>
-                
-                <h3 className="font-bold text-slate-900 mb-2">4. Third-Party Sharing</h3>
-                <p className="mb-4">We do not share your data with any third parties. Data is exchanged directly and securely between your browser and TikTok's official API endpoints.</p>
-              </>
-            }
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }
