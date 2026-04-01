@@ -1,7 +1,7 @@
 name: Deploy to GitHub Pages
 
 on:
-  # يشتغل تلقائياً عند رفع أي تعديل  على فرع main أو master
+  # يشتغل تلقائياً عند رفع أي تعديل على فرع main أو master
   push:
     branches:
       - main
