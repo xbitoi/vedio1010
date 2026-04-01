@@ -34,6 +34,8 @@ export default function App() {
 }
 
 function LoginScreen({ onConnect }: { onConnect: () => void }) {
+  const [legalView, setLegalView] = useState<'none' | 'terms' | 'policy'>('none');
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -89,9 +91,57 @@ function LoginScreen({ onConnect }: { onConnect: () => void }) {
         </div>
         
         <p className="mt-6 text-center text-xs text-slate-400">
-          By connecting your account, you agree to our Terms of Service and Privacy Policy.
+          By connecting your account, you agree to our{' '}
+          <button onClick={() => setLegalView('terms')} className="text-indigo-600 hover:underline font-medium">Terms of Service</button>
+          {' '}and{' '}
+          <button onClick={() => setLegalView('policy')} className="text-indigo-600 hover:underline font-medium">Privacy Policy</button>.
         </p>
       </div>
+
+      <AnimatePresence>
+        {legalView === 'terms' && (
+          <LegalModal 
+            title="Terms of Service" 
+            onClose={() => setLegalView('none')}
+            content={
+              <>
+                <h3 className="font-bold text-slate-900 mb-2">1. Acceptance of Terms</h3>
+                <p className="mb-4">By accessing SocialSync Pro, you agree to be bound by these Terms of Service, as well as the official <strong>TikTok Developer Terms of Service</strong>. If you do not agree, you may not use our API integration.</p>
+                
+                <h3 className="font-bold text-slate-900 mb-2">2. API Usage & Sandbox Environment</h3>
+                <p className="mb-4">This application currently operates in a <strong>Developer Sandbox</strong>. It utilizes the <strong>TikTok Login Kit</strong> for authentication, the <strong>Display API</strong> to fetch public video metadata, and the <strong>Content Posting API</strong> (Direct Post) for video uploads. Access is restricted to authorized test accounts (@warda_53).</p>
+                
+                <h3 className="font-bold text-slate-900 mb-2">3. Content Restrictions</h3>
+                <p className="mb-4">When using the Content Posting API, you agree that all uploaded media complies with TikTok's Community Guidelines. You must not upload content that infringes on intellectual property rights or violates the TikTok API Developer Agreement.</p>
+                
+                <h3 className="font-bold text-slate-900 mb-2">4. Rate Limiting & Quotas</h3>
+                <p className="mb-4">As a Sandbox application, API requests are subject to strict rate limits (e.g., requests per second/minute) enforced by the TikTok Open API platform. Excessive requests may result in temporary suspension of your Sandbox access token.</p>
+              </>
+            }
+          />
+        )}
+        {legalView === 'policy' && (
+          <LegalModal 
+            title="Privacy Policy" 
+            onClose={() => setLegalView('none')}
+            content={
+              <>
+                <h3 className="font-bold text-slate-900 mb-2">1. Data Collection via Login Kit</h3>
+                <p className="mb-4">Upon authorization through the <strong>TikTok Login Kit</strong>, we request the <code>user.info.basic</code> scope. This grants us temporary access to your public profile data, including your Display Name, Avatar URL, and Profile Link.</p>
+                
+                <h3 className="font-bold text-slate-900 mb-2">2. Video Data & Display API</h3>
+                <p className="mb-4">We utilize the <strong>TikTok Display API</strong> (<code>video.list</code> scope) to retrieve metadata for your public videos (views, likes, comments). This data is used solely to populate your SocialSync Pro dashboard.</p>
+                
+                <h3 className="font-bold text-slate-900 mb-2">3. Data Storage & Security</h3>
+                <p className="mb-4">Because this is a client-side Sandbox demonstration, <strong>we do not store your TikTok Access Tokens, Refresh Tokens, or video data on external servers</strong>. All data fetched from <code>open.tiktokapis.com</code> is processed locally in your browser session and is cleared upon logout.</p>
+                
+                <h3 className="font-bold text-slate-900 mb-2">4. Third-Party Sharing</h3>
+                <p className="mb-4">We do not share your data with any third parties. Data is exchanged directly and securely between your browser and TikTok's official API endpoints.</p>
+              </>
+            }
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -662,6 +712,39 @@ function UploadModal({ onClose, onComplete }: { onClose: () => void, onComplete:
               </div>
             </motion.div>
           )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function LegalModal({ title, content, onClose }: { title: string, content: React.ReactNode, onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm font-sans">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[80vh]"
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+              <Info className="w-4 h-4 text-indigo-600" />
+            </div>
+            <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+          </div>
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 sm:p-8 overflow-y-auto text-sm text-slate-600 leading-relaxed">
+          {content}
+        </div>
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end shrink-0">
+          <button onClick={onClose} className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+            I Understand
+          </button>
         </div>
       </motion.div>
     </div>
