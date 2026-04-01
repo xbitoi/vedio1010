@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { HashRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Upload, CheckCircle2, Loader2, X, Plus, Play, BarChart2, 
   Users, Settings, LogOut, Video, LayoutDashboard, Lock, 
-  MessageCircle, Share2, AlertTriangle, Info, Check, Image as ImageIcon
+  MessageCircle, Share2, AlertTriangle, Info, Check, Image as ImageIcon, Menu
 } from 'lucide-react';
 
 import Terms from './pages/Terms';
@@ -27,7 +27,7 @@ export default function App() {
   const [authState, setAuthState] = useState<'logged_out' | 'authorizing' | 'logged_in'>('logged_out');
 
   return (
-    <HashRouter>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={
           authState === 'logged_out' ? <LoginScreen onConnect={() => setAuthState('authorizing')} /> :
@@ -37,7 +37,7 @@ export default function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 
@@ -215,6 +215,7 @@ function TikTokAuthModal({ onAuthorize, onCancel }: { onAuthorize: () => void, o
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [videos, setVideos] = useState(FAKE_VIDEOS);
 
   const handleUploadComplete = (newVideo: any) => {
@@ -226,45 +227,44 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     <div className="min-h-screen bg-[#F8FAFC] flex font-sans">
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col z-10">
-        <div className="h-16 flex items-center px-6 border-b border-slate-100 shrink-0">
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center mr-3 shadow-sm">
-            <LayoutDashboard className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-bold text-lg text-slate-900 tracking-tight">SocialSync</span>
-        </div>
-        
-        <div className="flex-1 py-6 flex flex-col gap-1 px-3 overflow-y-auto">
-          <div className="px-3 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Platform</div>
-          <NavItem icon={<Video className="w-5 h-5" />} label="TikTok Manager" active />
-          <NavItem icon={<BarChart2 className="w-5 h-5" />} label="Analytics" />
-          <NavItem icon={<Users className="w-5 h-5" />} label="Audience" />
-          
-          <div className="px-3 mt-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Settings</div>
-          <NavItem icon={<Settings className="w-5 h-5" />} label="Preferences" />
-        </div>
-        
-        <div className="p-4 border-t border-slate-100 shrink-0">
-          <div className="flex items-center p-3 bg-slate-50 rounded-xl border border-slate-100 mb-3">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm mr-3">
-              TU
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 truncate">@warda_53</p>
-              <p className="text-xs text-slate-500 truncate">Sandbox Account</p>
-            </div>
-          </div>
-          <button onClick={onLogout} className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-            <LogOut className="w-4 h-4 mr-2" />
-            Disconnect
-          </button>
-        </div>
+        <SidebarContent onLogout={onLogout} />
       </div>
+
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 w-64 bg-white shadow-2xl z-50 flex flex-col md:hidden"
+            >
+              <SidebarContent onLogout={onLogout} />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {/* Header */}
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 shrink-0 sticky top-0 z-20">
           <div className="flex items-center">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden mr-3 p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
             <h1 className="text-xl font-bold text-slate-800 mr-4">Content Dashboard</h1>
             <span className="hidden sm:flex items-center px-2.5 py-1 bg-amber-50 text-amber-700 text-xs font-semibold rounded-md border border-amber-200">
               <AlertTriangle className="w-3 h-3 mr-1.5" />
@@ -343,12 +343,81 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   );
 }
 
+function SidebarContent({ onLogout }: { onLogout: () => void }) {
+  return (
+    <>
+      <div className="h-16 flex items-center px-6 border-b border-slate-100 shrink-0">
+        <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center mr-3 shadow-sm">
+          <LayoutDashboard className="w-4 h-4 text-white" />
+        </div>
+        <span className="font-bold text-lg text-slate-900 tracking-tight">SocialSync</span>
+      </div>
+      
+      <div className="flex-1 py-6 flex flex-col gap-1 px-3 overflow-y-auto">
+        <div className="px-3 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Platform</div>
+        <NavItem icon={<Video className="w-5 h-5" />} label="TikTok Manager" active />
+        <NavItem icon={<BarChart2 className="w-5 h-5" />} label="Analytics" />
+        <NavItem icon={<Users className="w-5 h-5" />} label="Audience" />
+        
+        <div className="px-3 mt-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Settings</div>
+        <NavItem icon={<Settings className="w-5 h-5" />} label="Preferences" />
+        
+        <div className="px-5 py-3 mt-2 mx-3 bg-slate-50 rounded-xl border border-slate-100">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Default Settings</p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-700">Auto-publish</span>
+              <Toggle initial={true} />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-700">Save to device</span>
+              <Toggle initial={false} />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-700">Allow Duet</span>
+              <Toggle initial={true} />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="p-4 border-t border-slate-100 shrink-0">
+        <div className="flex items-center p-3 bg-slate-50 rounded-xl border border-slate-100 mb-3">
+          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm mr-3">
+            TU
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-slate-900 truncate">@warda_53</p>
+            <p className="text-xs text-slate-500 truncate">Sandbox Account</p>
+          </div>
+        </div>
+        <button onClick={onLogout} className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+          <LogOut className="w-4 h-4 mr-2" />
+          Disconnect
+        </button>
+      </div>
+    </>
+  );
+}
+
 function NavItem({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
   return (
     <button className={`flex items-center w-full px-3 py-2.5 rounded-xl transition-all ${active ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'}`}>
       <span className={`mr-3 ${active ? 'text-indigo-600' : 'text-slate-400'}`}>{icon}</span>
       {label}
     </button>
+  );
+}
+
+function Toggle({ initial = false }: { initial?: boolean }) {
+  const [isOn, setIsOn] = useState(initial);
+  return (
+    <div 
+      onClick={() => setIsOn(!isOn)}
+      className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors duration-200 ${isOn ? 'bg-indigo-600' : 'bg-slate-200'}`}
+    >
+      <div className={`absolute left-1 top-0.5 w-3 h-3 bg-white rounded-full shadow-sm transition-transform duration-200 ${isOn ? 'translate-x-3' : 'translate-x-0'}`}></div>
+    </div>
   );
 }
 
