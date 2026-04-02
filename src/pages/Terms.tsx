@@ -13,7 +13,7 @@ export default function Terms() {
           <h1 className="text-2xl font-bold text-slate-900">Terms of Service</h1>
         </div>
         <div className="p-6 sm:p-8 text-slate-600 leading-relaxed">
-          <p className="mb-6 text-sm text-slate-500">Last Updated: April 2026</p>
+          <p className="mb-6 text-sm text-slate-500">Last Updated: February 2026</p>
           
           <h3 className="text-lg font-bold text-slate-900 mb-2">1. Introduction</h3>
           <p className="mb-6">Welcome to SocialSync. By accessing or using our platform, you agree to be bound by these Terms of Service. If you do not agree to all the terms and conditions, then you may not access the website or use any services.</p>
