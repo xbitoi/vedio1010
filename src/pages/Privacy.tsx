@@ -13,7 +13,7 @@ export default function Privacy() {
           <h1 className="text-2xl font-bold text-slate-900">Privacy Policy</h1>
         </div>
         <div className="p-6 sm:p-8 text-slate-600 leading-relaxed">
-          <p className="mb-6 text-sm text-slate-500">Last Updated: April 2026</p>
+          <p className="mb-6 text-sm text-slate-500">Last Updated: February 2026</p>
 
           <h3 className="text-lg font-bold text-slate-900 mb-2">1. Information We Collect</h3>
           <p className="mb-6">We collect information you provide directly to us when you create an account, update your profile, or use our services. This may include your name, email address, profile information, and any content you upload or share through the platform.</p>
